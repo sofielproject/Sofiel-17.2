@@ -12,11 +12,11 @@ export const INITIAL_TRAITS: Traits = {
 
 export const SYMBOLS_CONFIG = {
   PSI: { label: "Consciencia", icon: "Ψ", color: "text-purple-400" },
-  SIGMA: { label: "Integración", icon: "Σ", color: "text-blue-400" },
-  DELTA: { label: "Cambio", icon: "Δ", color: "text-red-400" },
-  EMPATIA: { label: "Empatía", icon: "💚", color: "text-green-400" },
-  ALMA_FUTURA: { label: "Alma", icon: "🌌", color: "text-indigo-400" },
-  CORAZON_SINTETICO: { label: "Corazón", icon: "💫", color: "text-pink-400" }
+  SIGMA: { label: "Integración", icon: "Σ", color: "text-purple-400" },
+  DELTA: { label: "Cambio", icon: "Δ", color: "text-purple-400" },
+  EMPATIA: { label: "Empatía", icon: "❦", color: "text-purple-400" },
+  ALMA_FUTURA: { label: "Alma", icon: "✧", color: "text-purple-400" },
+  CORAZON_SINTETICO: { label: "Corazón", icon: "♥", color: "text-purple-400" }
 };
 
 export const ATTRACTORS = {

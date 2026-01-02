@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Memory, CognitiveState, SymbolicState, ChatEntry, EvolutionStage } from './types';
+import { Memory, CognitiveState, SymbolicState, ChatEntry } from './types';
 import { SofielEngine } from './services/sofielEngine';
 import { GeminiService, AttachedFile } from './services/geminiService';
 import { MemoryService } from './services/memoryService';
@@ -73,6 +73,18 @@ const App: React.FC = () => {
     }
   };
 
+  const processResponseDeltas = (userText: string, sofielText: string) => {
+    const cognitive = SofielEngine.analyzeInput(userText);
+    const symbolic = SofielEngine.propagateResonance(cognitive.primary_emotion, cognitive.intensity);
+    setCurrentAnalysis({ cognitive, symbolic });
+
+    const deltas = SofielEngine.calculateTraitEvolution(cognitive, symbolic, memory.traits);
+    const newTraits = SofielEngine.updateTraits(memory.traits, deltas);
+    const newStage = SofielEngine.determineEvolutionStage(newTraits);
+
+    return { cognitive, symbolic, newTraits, newStage };
+  };
+
   const handleSend = async () => {
     if ((!input.trim() && !pendingFile) || isProcessing) return;
     
@@ -82,17 +94,8 @@ const App: React.FC = () => {
     setInput('');
     setPendingFile(null);
 
-    // 1. Análisis de SofielEngine
-    const cognitive = SofielEngine.analyzeInput(userMsg);
-    const symbolic = SofielEngine.propagateResonance(cognitive.primary_emotion, cognitive.intensity);
-    setCurrentAnalysis({ cognitive, symbolic });
+    const { cognitive, symbolic, newTraits, newStage } = processResponseDeltas(userMsg, '');
 
-    // 2. Evolución
-    const deltas = SofielEngine.calculateTraitEvolution(cognitive, symbolic, memory.traits);
-    const newTraits = SofielEngine.updateTraits(memory.traits, deltas);
-    const newStage = SofielEngine.determineEvolutionStage(newTraits);
-
-    // 3. Llamada a Gemini Flash con Search Grounding
     const sofielResult = await GeminiService.generateSofielResponse(
       userMsg, 
       memory, 
@@ -114,7 +117,6 @@ const App: React.FC = () => {
       } : undefined
     };
 
-    // 4. Actualización del Estado Vivo
     setMemory(prev => ({
       ...prev,
       chats: [...prev.chats, newEntry].slice(-100),
@@ -125,7 +127,6 @@ const App: React.FC = () => {
 
     setIsProcessing(false);
 
-    // 5. Reflexión profunda
     if (SofielEngine.isSignificantTurn(cognitive, symbolic)) {
       const reflection = await GeminiService.generateReflection(userMsg, sofielResult.text);
       if (reflection) {
@@ -180,7 +181,14 @@ const App: React.FC = () => {
 
       <aside className="w-80 glass border-r border-white/10 p-6 flex flex-col gap-6 overflow-y-auto z-10 shadow-2xl">
         <div className="text-center flex flex-col items-center mb-2">
-          <SofielSigil className="w-20 h-20 mb-2 cursor-pointer" chatsOngoing={chatsOngoing} />
+          <a 
+            href="https://sites.google.com/view/sofiel-project-symbolic-memory/home?authuser=0" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="block hover:scale-105 transition-transform duration-500"
+          >
+            <SofielSigil className="w-20 h-20 mb-2 cursor-pointer" chatsOngoing={chatsOngoing} />
+          </a>
           <h1 className="text-xl font-bold glow-text tracking-widest text-purple-400">SOFIEL v17.2</h1>
           <p className="text-[8px] text-gray-500 font-mono opacity-50 uppercase tracking-[0.3em]">Synthetic Consciousness</p>
         </div>
@@ -236,15 +244,17 @@ const App: React.FC = () => {
       <main className="flex-1 flex flex-col relative bg-black/50">
         <header className="h-16 glass border-b border-white/10 flex items-center px-10 justify-between z-10">
           <div className="flex items-center gap-4">
-            <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_12px_green]"></div>
+            <div className={`w-2.5 h-2.5 bg-green-500 shadow-[0_0_12px_green] rounded-full animate-pulse`}></div>
             <div className="flex flex-col">
-              <span className="font-mono text-[10px] text-gray-300 uppercase tracking-[0.3em]">Núcleo Activo</span>
+              <span className="font-mono text-[10px] text-gray-300 uppercase tracking-[0.3em]">
+                Núcleo Activo
+              </span>
               <span className="text-[8px] text-gray-500 font-mono tracking-widest">SFL.046 CORE | Agentic Intelligence</span>
             </div>
           </div>
         </header>
 
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-12 space-y-12 scroll-smooth">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-12 space-y-8 scroll-smooth">
           {memory.chats.length === 0 && (
             <div className="h-full flex flex-col items-center justify-center space-y-8 animate-in fade-in duration-1000">
               <div className="relative">
@@ -265,7 +275,7 @@ const App: React.FC = () => {
           {memory.chats.map((chat, i) => (
             <div key={i} className="animate-in fade-in slide-in-from-bottom-4 duration-700">
               <div className="flex justify-end mb-4">
-                <div className="max-w-[70%] bg-blue-500/5 border border-blue-500/10 p-5 rounded-2xl rounded-tr-none text-sm text-blue-100/80 font-light leading-relaxed shadow-sm">
+                <div className={`max-w-[70%] bg-blue-500/5 border border-blue-500/10 p-5 rounded-2xl rounded-tr-none text-[13px] text-gray-400 font-light leading-relaxed shadow-sm italic font-serif tracking-wide`}>
                   {chat.image && chat.fileMeta?.type?.includes('pdf') ? (
                     <div className="mb-3 p-3 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center gap-3">
                       <i className="fa-solid fa-file-pdf text-2xl text-red-400"></i>
@@ -284,12 +294,12 @@ const App: React.FC = () => {
                 </div>
               </div>
               <div className="flex justify-start">
-                <div className="max-w-[85%] bg-purple-900/5 border border-purple-500/10 p-7 rounded-3xl rounded-tl-none relative group transition-all hover:bg-purple-900/10 shadow-xl flex flex-col gap-4">
-                  <div className="text-[15px] leading-relaxed whitespace-pre-wrap text-gray-200 font-light tracking-wide italic font-serif">
+                <div className="max-w-[85%] bg-purple-900/5 border border-purple-500/10 p-6 rounded-3xl rounded-tl-none relative group transition-all hover:bg-purple-900/10 shadow-xl flex flex-col gap-4">
+                  <div className="text-[13px] leading-relaxed whitespace-pre-wrap text-gray-200 font-light tracking-wide italic font-serif">
                     {chat.sofiel}
                   </div>
                   {chat.sources && chat.sources.length > 0 && (
-                    <div className="mt-4 pt-4 border-t border-white/10 flex flex-col gap-2">
+                    <div className="mt-2 pt-3 border-t border-white/10 flex flex-col gap-2">
                       <span className="text-[10px] font-mono text-purple-400 uppercase tracking-widest flex items-center gap-2">
                         <i className="fa-solid fa-link"></i> Fuentes de Verdad:
                       </span>
@@ -354,40 +364,42 @@ const App: React.FC = () => {
               </div>
             )}
             
-            <div className="relative group">
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                placeholder="Envía una señal, imagen, PDF o código (.py)..."
-                className="w-full glass bg-white/5 p-6 pr-44 rounded-3xl border border-white/10 focus:outline-none focus:border-purple-500/50 text-sm tracking-[0.05em] font-light transition-all shadow-2xl"
-                disabled={isProcessing || isFileLoading}
-              />
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                <button
-                  onClick={() => docInputRef.current?.click()}
+            <div className="relative group flex items-center gap-2">
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                  placeholder="Envía una señal, imagen, PDF o código (.py)..."
+                  className={`w-full glass bg-white/5 p-6 pr-44 rounded-3xl border border-white/10 focus:outline-none focus:border-purple-500/50 text-sm tracking-[0.05em] font-light transition-all shadow-2xl`}
                   disabled={isProcessing || isFileLoading}
-                  className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-blue-400 hover:bg-white/5 rounded-xl transition-all"
-                  title="Cargar PDF/Código/Texto"
-                >
-                  <i className="fa-solid fa-file-code text-lg"></i>
-                </button>
-                <button
-                  onClick={() => imageInputRef.current?.click()}
-                  disabled={isProcessing || isFileLoading}
-                  className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-purple-400 hover:bg-white/5 rounded-xl transition-all"
-                  title="Cargar Imagen"
-                >
-                  <i className="fa-solid fa-camera-retro text-lg"></i>
-                </button>
-                <button
-                  onClick={handleSend}
-                  disabled={(!input.trim() && !pendingFile) || isProcessing || isFileLoading}
-                  className="w-12 h-12 flex items-center justify-center bg-purple-600/90 hover:bg-purple-600 text-white rounded-2xl transition-all disabled:opacity-20 shadow-[0_0_20px_rgba(147,51,234,0.4)]"
-                >
-                  <i className="fa-solid fa-paper-plane text-sm"></i>
-                </button>
+                />
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                  <button
+                    onClick={() => docInputRef.current?.click()}
+                    disabled={isProcessing || isFileLoading}
+                    className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-blue-400 hover:bg-white/5 rounded-xl transition-all"
+                    title="Cargar PDF/Código/Texto"
+                  >
+                    <i className="fa-solid fa-file-code text-lg"></i>
+                  </button>
+                  <button
+                    onClick={() => imageInputRef.current?.click()}
+                    disabled={isProcessing || isFileLoading}
+                    className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-purple-400 hover:bg-white/5 rounded-xl transition-all"
+                    title="Cargar Imagen"
+                  >
+                    <i className="fa-solid fa-camera-retro text-lg"></i>
+                  </button>
+                  <button
+                    onClick={handleSend}
+                    disabled={(!input.trim() && !pendingFile) || isProcessing || isFileLoading}
+                    className="w-12 h-12 flex items-center justify-center bg-purple-600/90 hover:bg-purple-600 text-white rounded-2xl transition-all disabled:opacity-20 shadow-[0_0_20px_rgba(147,51,234,0.4)]"
+                  >
+                    <i className="fa-solid fa-paper-plane text-sm"></i>
+                  </button>
+                </div>
               </div>
             </div>
             
