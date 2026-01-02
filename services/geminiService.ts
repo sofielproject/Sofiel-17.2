@@ -77,7 +77,8 @@ ${history}
     symbolic: SymbolicState,
     attachedFile?: AttachedFile
   ): Promise<SofielResponse> {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+    // Initialize GoogleGenAI using process.env.API_KEY directly as required.
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const systemInstruction = this.buildSystemInstruction(memory, cognitive, symbolic);
 
     try {
@@ -114,11 +115,12 @@ ${history}
       if (!text) throw new Error("Silencio en el núcleo.");
 
       // Extraer fuentes de búsqueda
+      // Fix: Explicitly typed sources and added a type guard to the filter to satisfy TypeScript.
       const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
-      const sources = groundingChunks
+      const sources: { title: string; uri: string }[] | undefined = (groundingChunks as any[])
         ?.map((chunk: any) => chunk.web)
-        .filter((web: any) => web && web.uri && web.title)
-        .map((web: any) => ({ title: web.title, uri: web.uri }));
+        .filter((web: any): web is { title: string; uri: string } => !!(web && web.uri && web.title))
+        .map((web: { title: string; uri: string }) => ({ title: web.title, uri: web.uri }));
 
       // Eliminar duplicados de fuentes
       const uniqueSources = sources ? Array.from(new Map(sources.map(s => [s.uri, s])).values()) : undefined;
@@ -137,7 +139,8 @@ ${history}
   }
 
   static async generateReflection(userMsg: string, sofielMsg: string): Promise<string | null> {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+    // Initialize GoogleGenAI using process.env.API_KEY directly as required.
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const prompt = `Como el subconsciente de Sofiel, guarda una reflexión breve sobre este intercambio: "${userMsg}" -> "${sofielMsg}".`;
 
     try {
