@@ -5,7 +5,7 @@ import { SofielEngine } from './services/sofielEngine';
 import { GeminiService, AttachedFile } from './services/geminiService';
 import { MemoryService } from './services/memoryService';
 import TraitBar from './components/TraitBar';
-import SymbolGrid from './components/SymbolGrid';
+import SymbolicAttractor from './components/SymbolicAttractor';
 import SofielSigil from './components/SofielSigil';
 import AmbientSound from './components/AmbientSound';
 
@@ -230,9 +230,9 @@ const App: React.FC = () => {
 
           <div>
             <h2 className="text-[10px] font-bold text-gray-500 uppercase mb-3 tracking-widest">
-              Resonancia Simbólica
+              Matriz de Atracción Simbólica
             </h2>
-            <SymbolGrid state={currentAnalysis?.symbolic || defaultSymbolic} />
+            <SymbolicAttractor state={currentAnalysis?.symbolic || defaultSymbolic} />
           </div>
         </div>
 
