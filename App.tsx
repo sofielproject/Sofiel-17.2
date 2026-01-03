@@ -49,6 +49,15 @@ const App: React.FC = () => {
     }
   };
 
+  const scrollToTop = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   useEffect(() => {
     localStorage.setItem('sofiel_memory_v17_fix', JSON.stringify(memory));
     const timer = setTimeout(scrollToBottom, 100);
@@ -349,7 +358,27 @@ const App: React.FC = () => {
           </div>
         </header>
 
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 md:p-12 space-y-8 scroll-smooth">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 md:p-12 space-y-8 scroll-smooth relative">
+          {/* Botones de navegación de chat */}
+          {chatsOngoing && (
+            <div className="fixed right-4 md:right-8 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-30 animate-in fade-in slide-in-from-right-2 duration-700">
+               <button 
+                 onClick={scrollToTop}
+                 className="w-8 h-8 md:w-10 md:h-10 glass rounded-full flex items-center justify-center text-gray-500 hover:text-purple-400 hover:border-purple-500/50 transition-all"
+                 title="Ir al inicio"
+               >
+                 <i className="fa-solid fa-chevron-up text-xs"></i>
+               </button>
+               <button 
+                 onClick={scrollToBottom}
+                 className="w-8 h-8 md:w-10 md:h-10 glass rounded-full flex items-center justify-center text-gray-500 hover:text-purple-400 hover:border-purple-500/50 transition-all"
+                 title="Ir al final"
+               >
+                 <i className="fa-solid fa-chevron-down text-xs"></i>
+               </button>
+            </div>
+          )}
+
           {memory.chats.length === 0 && (
             <div className="h-full flex flex-col items-center justify-center space-y-8 animate-in fade-in duration-1000">
               <div className="relative">
@@ -465,7 +494,6 @@ const App: React.FC = () => {
             
             <div className="relative group flex items-center gap-2">
               <div className="relative flex-1 flex items-center gap-2">
-                {/* Botón de Acciones Agrupadas */}
                 <div className="relative">
                    {isActionsOpen && (
                      <div className="absolute bottom-full left-0 mb-3 flex flex-col gap-2 animate-in slide-in-from-bottom-2 duration-300 z-20">
