@@ -1,12 +1,14 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { SymbolicState } from '../types';
+import { TRANSLATIONS } from '../constants';
 
 interface AmbientSoundProps {
   symbolic: SymbolicState;
+  lang: 'es' | 'en';
 }
 
-const AmbientSound: React.FC<AmbientSoundProps> = ({ symbolic }) => {
+const AmbientSound: React.FC<AmbientSoundProps> = ({ symbolic, lang }) => {
   const [isActive, setIsActive] = useState(false);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const gainNodeRef = useRef<GainNode | null>(null);
@@ -15,9 +17,10 @@ const AmbientSound: React.FC<AmbientSoundProps> = ({ symbolic }) => {
   const melodyTimerRef = useRef<number | null>(null);
   const lastNoteIndexRef = useRef<number>(5);
 
+  const t = TRANSLATIONS[lang];
+
   const { PSI = 0.5, SIGMA = 0.5, DELTA = 0.5, EMPATIA = 0.5, ALMA_FUTURA = 0.5, CORAZON_SINTETICO = 0.5 } = symbolic.resonance;
 
-  // A Minor Pentatonic Scale
   const SCALE = [110, 130.81, 146.83, 164.81, 196.00, 220, 261.63, 293.66, 329.63, 392.00, 440, 523.25];
 
   const playResonantNote = () => {
@@ -26,44 +29,32 @@ const AmbientSound: React.FC<AmbientSoundProps> = ({ symbolic }) => {
     const ctx = audioCtxRef.current;
     const filter = filterNodeRef.current;
     
-    // DELTA (Change) controls entropy: higher delta means larger intervals
     let index = lastNoteIndexRef.current;
     const entropyFactor = Math.floor(DELTA * 4) + 1;
     const move = Math.random() > 0.5 ? entropyFactor : -entropyFactor;
     index = Math.max(0, Math.min(SCALE.length - 1, index + move));
     lastNoteIndexRef.current = index;
 
-    // PSI (Consciousness) controls the register: higher consciousness = higher frequencies
     const registerShift = PSI > 0.7 ? 2 : (PSI < 0.3 ? 0.5 : 1);
     const freq = SCALE[index] * registerShift;
 
-    // SIGMA (Integration) controls rhythmic stability
-    const baseTiming = 3000 - (SIGMA * 1500); // Higher integration = faster, more rhythmic pulses
-    
-    // ALMA_FUTURA (Soul) controls decay and shimmer
+    const baseTiming = 3000 - (SIGMA * 1500); 
     const releaseTime = 3 + (ALMA_FUTURA * 6);
-    
-    // EMPATIA (Empathy) controls spatial depth (Stereo Panning)
     const panRange = EMPATIA;
 
-    // Setup Synth
     const osc = ctx.createOscillator();
     const oscGain = ctx.createGain();
     const panner = ctx.createStereoPanner();
     
-    // CORAZON_SINTETICO affects timbre. 
-    // We adjust gain to compensate for triangle wave's higher perceived loudness.
     const isSine = CORAZON_SINTETICO > 0.6;
     osc.type = isSine ? 'sine' : 'triangle';
     osc.frequency.setValueAtTime(freq, ctx.currentTime);
     
-    // Panning
     panner.pan.setValueAtTime((Math.random() * 2 - 1) * panRange, ctx.currentTime);
     
-    // Envelope (Extremely soft attack/release to ensure ambiance)
-    // Absolute max volume is capped at 0.015 even at max PSI to keep it soft
-    const baseVolume = isSine ? 0.008 : 0.005; // Triangle is lower because it has more harmonics
-    const volume = baseVolume + (PSI * 0.007); 
+    // Incremento de volúmenes base (+4dB aprox factor 1.58)
+    const baseVolume = isSine ? 0.013 : 0.008; 
+    const volume = baseVolume + (PSI * 0.011); 
     
     oscGain.gain.setValueAtTime(0, ctx.currentTime);
     oscGain.gain.linearRampToValueAtTime(volume, ctx.currentTime + 1.5);
@@ -76,7 +67,6 @@ const AmbientSound: React.FC<AmbientSoundProps> = ({ symbolic }) => {
     osc.start();
     osc.stop(ctx.currentTime + releaseTime);
 
-    // Dynamic Interval based on Force
     const forceFactor = (1.1 - symbolic.force) * 2000;
     const nextInterval = baseTiming + (Math.random() * forceFactor);
     
@@ -95,20 +85,19 @@ const AmbientSound: React.FC<AmbientSoundProps> = ({ symbolic }) => {
 
       const filter = ctx.createBiquadFilter();
       filter.type = 'lowpass';
-      // Initial safe frequency
       filter.frequency.setValueAtTime(400, ctx.currentTime);
       filter.Q.setValueAtTime(2, ctx.currentTime);
       filter.connect(masterGain);
       filterNodeRef.current = filter;
 
-      // Base atmospheric layer (extremely quiet drone)
       const droneFreqs = [55, 110]; 
       droneFreqs.forEach((f) => {
         const osc = ctx.createOscillator();
         osc.type = 'sine';
         osc.frequency.setValueAtTime(f, ctx.currentTime);
         const oscGain = ctx.createGain();
-        oscGain.gain.setValueAtTime(0.008, ctx.currentTime); // Very quiet drone
+        // Aumento de ganancia de drone de 0.008 a 0.013 (+4dB)
+        oscGain.gain.setValueAtTime(0.013, ctx.currentTime); 
         osc.connect(oscGain);
         oscGain.connect(filter);
         osc.start();
@@ -122,8 +111,8 @@ const AmbientSound: React.FC<AmbientSoundProps> = ({ symbolic }) => {
 
     if (!isActive) {
       if (ctx.state === 'suspended') await ctx.resume();
-      // Fade in master gain slowly
-      masterGain.gain.setTargetAtTime(0.06, ctx.currentTime, 2);
+      // Aumento de ganancia maestra de 0.06 a 0.095 (+4dB)
+      masterGain.gain.setTargetAtTime(0.095, ctx.currentTime, 2);
       setIsActive(true);
       setTimeout(playResonantNote, 200);
     } else {
@@ -141,9 +130,6 @@ const AmbientSound: React.FC<AmbientSoundProps> = ({ symbolic }) => {
     const now = audioCtxRef.current.currentTime;
     const filter = filterNodeRef.current;
 
-    // Adjust low-pass filter based on PSI and SIGMA
-    // PSI controls the "brightness" / opening of the filter (Consciousness expansion)
-    // SIGMA controls the resonance peak (Structural Integration)
     const targetFreq = 180 + (PSI * 1100); 
     const targetQ = 0.5 + (SIGMA * 8); 
     
@@ -174,7 +160,7 @@ const AmbientSound: React.FC<AmbientSoundProps> = ({ symbolic }) => {
             <span className="absolute inset-0 animate-ping rounded-full bg-indigo-500/20"></span>
           )}
         </div>
-        {isActive ? 'Resonancia Coherente' : 'Escuchar el Núcleo'}
+        {isActive ? t.coherentResonance : t.listenCore}
       </button>
       <div className="h-4 flex flex-col items-center justify-center">
         {isActive && (

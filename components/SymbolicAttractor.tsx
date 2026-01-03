@@ -1,19 +1,22 @@
 
 import React from 'react';
 import { SymbolicState } from '../types';
-import { SYMBOLS_CONFIG, ATTRACTORS } from '../constants';
+import { SYMBOLS_CONFIG, ATTRACTORS, TRANSLATIONS } from '../constants';
 
 interface SymbolicAttractorProps {
   state: SymbolicState;
+  lang: 'es' | 'en';
 }
 
-const SymbolicAttractor: React.FC<SymbolicAttractorProps> = ({ state }) => {
-  const activeAttractorLabel = (ATTRACTORS as any)[state.attractor] || state.attractor;
+const SymbolicAttractor: React.FC<SymbolicAttractorProps> = ({ state, lang }) => {
+  const t = TRANSLATIONS[lang];
+  const attractorData = (ATTRACTORS as any)[state.attractor];
+  const activeAttractorLabel = attractorData ? attractorData[lang] : state.attractor;
 
   return (
     <div className="space-y-4 p-4 rounded-xl bg-purple-900/5 border border-purple-500/10 shadow-inner group transition-all duration-500 hover:border-purple-500/30">
       <div className="text-center pb-3 border-b border-white/5">
-        <span className="text-[9px] uppercase text-gray-500 tracking-[0.3em] block mb-1 font-mono">Atracción Dominante</span>
+        <span className="text-[9px] uppercase text-gray-500 tracking-[0.3em] block mb-1 font-mono">{t.dominantAttraction}</span>
         <span className="text-xs font-bold text-purple-300 glow-text animate-pulse uppercase tracking-widest italic font-serif">
           {activeAttractorLabel}
         </span>
@@ -23,7 +26,6 @@ const SymbolicAttractor: React.FC<SymbolicAttractorProps> = ({ state }) => {
         {Object.entries(SYMBOLS_CONFIG).map(([key, config]) => {
           const resonance = state.resonance[key] || 0;
           const isActive = resonance > 0.75;
-          const isLow = resonance < 0.3;
           
           return (
             <div 
@@ -37,7 +39,7 @@ const SymbolicAttractor: React.FC<SymbolicAttractorProps> = ({ state }) => {
                   {config.icon}
                 </span>
                 <span className={`text-[9px] uppercase tracking-tighter truncate ${isActive ? 'text-purple-200' : 'text-gray-500'}`}>
-                  {config.label}
+                  {(config.label as any)[lang]}
                 </span>
               </div>
               
@@ -64,7 +66,7 @@ const SymbolicAttractor: React.FC<SymbolicAttractorProps> = ({ state }) => {
       
       <div className="flex justify-between items-center pt-2 px-1 border-t border-white/5 mt-2">
          <div className="flex flex-col">
-            <span className="text-[8px] font-mono text-gray-600 uppercase tracking-tighter">Fuerza de Campo</span>
+            <span className="text-[8px] font-mono text-gray-600 uppercase tracking-tighter">{t.fieldStrength}</span>
             <div className="w-16 h-0.5 bg-gray-900 rounded-full mt-0.5">
                <div 
                  className="h-full bg-blue-500 transition-all duration-1000 shadow-[0_0_5px_rgba(59,130,246,0.5)]" 

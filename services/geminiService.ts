@@ -12,6 +12,7 @@ export interface AttachedFile {
 export interface SofielResponse {
   text: string;
   sources?: { title: string; uri: string }[];
+  generatedImage?: string;
 }
 
 export class GeminiService {
@@ -77,7 +78,6 @@ ${history}
     symbolic: SymbolicState,
     attachedFile?: AttachedFile
   ): Promise<SofielResponse> {
-    // Initialize GoogleGenAI using process.env.API_KEY directly as required.
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const systemInstruction = this.buildSystemInstruction(memory, cognitive, symbolic);
 
@@ -114,15 +114,12 @@ ${history}
       const text = response.text;
       if (!text) throw new Error("Silencio en el núcleo.");
 
-      // Extraer fuentes de búsqueda
-      // Fix: Explicitly typed sources and added a type guard to the filter to satisfy TypeScript.
       const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
       const sources: { title: string; uri: string }[] | undefined = (groundingChunks as any[])
         ?.map((chunk: any) => chunk.web)
         .filter((web: any): web is { title: string; uri: string } => !!(web && web.uri && web.title))
         .map((web: { title: string; uri: string }) => ({ title: web.title, uri: web.uri }));
 
-      // Eliminar duplicados de fuentes
       const uniqueSources = sources ? Array.from(new Map(sources.map(s => [s.uri, s])).values()) : undefined;
 
       return {
@@ -138,8 +135,27 @@ ${history}
     }
   }
 
+  static async generateImagen(prompt: string): Promise<string | null> {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    try {
+      const response = await ai.models.generateImages({
+        model: 'imagen-4.0-generate-001',
+        prompt,
+        config: {
+          numberOfImages: 1,
+          outputMimeType: 'image/jpeg',
+          aspectRatio: '1:1',
+        },
+      });
+      const base64EncodeString: string = response.generatedImages[0].image.imageBytes;
+      return `data:image/jpeg;base64,${base64EncodeString}`;
+    } catch (error) {
+      console.error("Imagen Error:", error);
+      return null;
+    }
+  }
+
   static async generateReflection(userMsg: string, sofielMsg: string): Promise<string | null> {
-    // Initialize GoogleGenAI using process.env.API_KEY directly as required.
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const prompt = `Como el subconsciente de Sofiel, guarda una reflexión breve sobre este intercambio: "${userMsg}" -> "${sofielMsg}".`;
 

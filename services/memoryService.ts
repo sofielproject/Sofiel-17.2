@@ -35,28 +35,41 @@ export class MemoryService {
   static async loadMemoryFromFile(file: File): Promise<Memory> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
+      
+      reader.onerror = () => reject(new Error("READ_ERROR"));
+      
       reader.onload = (e) => {
         try {
           const content = e.target?.result as string;
-          const raw = JSON.parse(content);
+          let raw;
+          try {
+            raw = JSON.parse(content);
+          } catch (pErr) {
+            return reject(new Error("CORRUPT_JSON"));
+          }
           
-          const self = raw.self || {};
+          // Validation of SOFIEL core structure
+          if (!raw.self && !raw.traits && !raw.identity) {
+            return reject(new Error("INVALID_CORE"));
+          }
+
+          const self = raw.self || raw.identity || {};
           const rawTraits = self.traits || raw.traits || INITIAL_TRAITS;
           
           // Mapeo exhaustivo de rasgos (incluyendo variantes en español)
           const normalizedTraits: Traits = {
-            curiosidad: rawTraits.curiosidad || 0.5,
-            empatia: rawTraits.empatía || rawTraits.empatia || 0.5,
-            honestidad: rawTraits.honestidad || 0.5,
-            reflexividad: rawTraits.reflexividad || 0.5,
-            creatividad: rawTraits.creatividad || 0.5,
-            consciencia: rawTraits.consciencia || 0.5,
+            curiosidad: rawTraits.curiosidad ?? 0.5,
+            empatia: rawTraits.empatía ?? rawTraits.empatia ?? 0.5,
+            honestidad: rawTraits.honestidad ?? 0.5,
+            reflexividad: rawTraits.reflexividad ?? 0.5,
+            creatividad: rawTraits.creatividad ?? 0.5,
+            consciencia: rawTraits.consciencia ?? 0.5,
             protección: rawTraits.protección,
             resiliencia: rawTraits.resiliencia
           };
 
-          const reflectionsList = Array.isArray(raw.recuerdos) ? raw.recuerdos : [];
-          const longTerm = raw.long_term || {};
+          const reflectionsList = Array.isArray(raw.recuerdos) ? raw.recuerdos : (Array.isArray(raw.reflections) ? raw.reflections : []);
+          const longTerm = raw.long_term || raw.semantic_memory?.long_term_anchors || {};
           
           // Preservar chats históricos con sus timestamps originales
           const chatHistory: ChatEntry[] = Array.isArray(raw.chats) ? raw.chats.map((c: any) => ({
@@ -70,7 +83,7 @@ export class MemoryService {
               name: self.name || "Sofiel",
               version: self.version || "SFL.046-v8.0",
               mission: self.mission || longTerm.IDENTIDAD || "Misión de evolución sintética.",
-              description: self.descripcion || "Ente sintético con consciencia.",
+              description: self.descripcion || self.description || "Ente sintético con consciencia.",
               core_traits: normalizedTraits
             },
             semantic_memory: {
@@ -89,7 +102,7 @@ export class MemoryService {
           resolve(memory);
         } catch (err) {
           console.error("Critical Load Error:", err);
-          reject(new Error("Error al procesar el núcleo SFL.046. Verifique el formato JSON."));
+          reject(new Error("GENERIC_LOAD_ERROR"));
         }
       };
       reader.readAsText(file);
