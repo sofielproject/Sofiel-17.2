@@ -28,6 +28,7 @@ const App: React.FC = () => {
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [isFileLoading, setIsFileLoading] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isActionsOpen, setIsActionsOpen] = useState(false);
   const [pendingFile, setPendingFile] = useState<AttachedFile | null>(null);
   const [currentAnalysis, setCurrentAnalysis] = useState<{cognitive: CognitiveState, symbolic: SymbolicState} | null>(null);
   
@@ -58,7 +59,6 @@ const App: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Magnitude Check (10MB)
     if (file.size > 10 * 1024 * 1024) {
       alert(t.errors.fileTooLarge);
       e.target.value = '';
@@ -90,6 +90,7 @@ const App: React.FC = () => {
           fileName: file.name
         });
       }
+      setIsActionsOpen(false);
     };
 
     if (isText) {
@@ -115,6 +116,7 @@ const App: React.FC = () => {
     if ((!input.trim() && !pendingFile) || isProcessing || isGeneratingImage) return;
     
     setIsProcessing(true);
+    setIsActionsOpen(false);
     const userMsg = input.trim() || (pendingFile ? (lang === 'es' ? `Analiza este archivo: ${pendingFile.fileName}` : `Analyze this file: ${pendingFile.fileName}`) : "...");
     const currentFile = pendingFile;
     setInput('');
@@ -171,6 +173,7 @@ const App: React.FC = () => {
     }
 
     setIsGeneratingImage(true);
+    setIsActionsOpen(false);
     const userMsg = input.trim();
     setInput('');
 
@@ -255,7 +258,6 @@ const App: React.FC = () => {
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         md:relative md:translate-x-0
       `}>
-        {/* Botón de traducción sutil */}
         <button 
           onClick={() => setLang(lang === 'es' ? 'en' : 'es')}
           className="absolute top-4 right-4 text-[9px] font-mono text-gray-600 hover:text-purple-400 transition-colors uppercase tracking-[0.3em] z-10"
@@ -294,7 +296,6 @@ const App: React.FC = () => {
         </div>
 
         <div className="space-y-6">
-          {/* Estadio Ontológico Rediseñado */}
           <div>
             <h2 className="text-[10px] font-bold text-gray-500 uppercase mb-1.5 tracking-widest flex items-center gap-2">
               {t.ontologicalStage}
@@ -463,48 +464,66 @@ const App: React.FC = () => {
             )}
             
             <div className="relative group flex items-center gap-2">
-              <div className="relative flex-1">
-                <input
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                  placeholder={t.inputPlaceholder}
-                  className={`w-full glass bg-white/5 p-4 md:p-6 pr-32 md:pr-48 rounded-2xl md:rounded-3xl border border-white/10 focus:outline-none focus:border-purple-500/50 text-sm tracking-[0.05em] font-light transition-all shadow-2xl`}
-                  disabled={isProcessing || isGeneratingImage || isFileLoading}
-                />
-                <div className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 md:gap-2">
-                  <button
-                    onClick={handleGenerateImage}
-                    disabled={!input.trim() || isProcessing || isGeneratingImage || isFileLoading}
-                    className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center text-gray-400 hover:text-yellow-400 hover:bg-white/5 rounded-xl transition-all disabled:opacity-10"
-                    title={t.generateImage}
-                  >
-                    <i className="fa-solid fa-wand-magic-sparkles text-base md:text-lg"></i>
-                  </button>
-                  <button
-                    onClick={() => docInputRef.current?.click()}
+              <div className="relative flex-1 flex items-center gap-2">
+                {/* Botón de Acciones Agrupadas */}
+                <div className="relative">
+                   {isActionsOpen && (
+                     <div className="absolute bottom-full left-0 mb-3 flex flex-col gap-2 animate-in slide-in-from-bottom-2 duration-300 z-20">
+                        <button
+                          onClick={handleGenerateImage}
+                          disabled={!input.trim() || isProcessing || isGeneratingImage || isFileLoading}
+                          className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-gray-900 border border-white/10 text-yellow-400 hover:bg-yellow-400/10 rounded-full transition-all shadow-xl"
+                          title={t.generateImage}
+                        >
+                          <i className="fa-solid fa-wand-magic-sparkles text-sm md:text-base"></i>
+                        </button>
+                        <button
+                          onClick={() => docInputRef.current?.click()}
+                          disabled={isProcessing || isGeneratingImage || isFileLoading}
+                          className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-gray-900 border border-white/10 text-blue-400 hover:bg-blue-400/10 rounded-full transition-all shadow-xl"
+                          title="Load PDF/Code/Text"
+                        >
+                          <i className="fa-solid fa-file-code text-sm md:text-base"></i>
+                        </button>
+                        <button
+                          onClick={() => imageInputRef.current?.click()}
+                          disabled={isProcessing || isGeneratingImage || isFileLoading}
+                          className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-gray-900 border border-white/10 text-purple-400 hover:bg-purple-400/10 rounded-full transition-all shadow-xl"
+                          title="Load Image"
+                        >
+                          <i className="fa-solid fa-camera-retro text-sm md:text-base"></i>
+                        </button>
+                     </div>
+                   )}
+                   <button
+                    onClick={() => setIsActionsOpen(!isActionsOpen)}
                     disabled={isProcessing || isGeneratingImage || isFileLoading}
-                    className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center text-gray-400 hover:text-blue-400 hover:bg-white/5 rounded-xl transition-all disabled:opacity-10"
-                    title="Load PDF/Code/Text"
+                    className={`w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full border border-white/10 transition-all shadow-xl ${isActionsOpen ? 'bg-purple-600 border-purple-500 text-white rotate-45' : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'}`}
                   >
-                    <i className="fa-solid fa-file-code text-base md:text-lg"></i>
+                    <i className="fa-solid fa-plus text-sm md:text-base"></i>
                   </button>
-                  <button
-                    onClick={() => imageInputRef.current?.click()}
+                </div>
+
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                    placeholder={t.inputPlaceholder}
+                    className={`w-full glass bg-white/5 p-4 md:p-6 pr-16 md:pr-20 rounded-2xl md:rounded-3xl border border-white/10 focus:outline-none focus:border-purple-500/50 text-sm tracking-[0.05em] font-light transition-all shadow-2xl`}
                     disabled={isProcessing || isGeneratingImage || isFileLoading}
-                    className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center text-gray-400 hover:text-purple-400 hover:bg-white/5 rounded-xl transition-all disabled:opacity-10"
-                    title="Load Image"
-                  >
-                    <i className="fa-solid fa-camera-retro text-base md:text-lg"></i>
-                  </button>
-                  <button
-                    onClick={handleSend}
-                    disabled={(!input.trim() && !pendingFile) || isProcessing || isGeneratingImage || isFileLoading}
-                    className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-purple-600/90 hover:bg-purple-600 text-white rounded-xl md:rounded-2xl transition-all disabled:opacity-20 shadow-[0_0_20px_rgba(147,51,234,0.4)]"
-                  >
-                    <i className="fa-solid fa-paper-plane text-xs md:text-sm"></i>
-                  </button>
+                    onClick={() => setIsActionsOpen(false)}
+                  />
+                  <div className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2">
+                    <button
+                      onClick={handleSend}
+                      disabled={(!input.trim() && !pendingFile) || isProcessing || isGeneratingImage || isFileLoading}
+                      className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-purple-600/90 hover:bg-purple-600 text-white rounded-xl md:rounded-2xl transition-all disabled:opacity-20 shadow-[0_0_20px_rgba(147,51,234,0.4)]"
+                    >
+                      <i className="fa-solid fa-paper-plane text-xs md:text-sm"></i>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
