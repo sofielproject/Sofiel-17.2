@@ -109,7 +109,7 @@ const App: React.FC = () => {
     }
   };
 
-  const processResponseDeltas = (userText: string, sofielText: string) => {
+  const processResponseDeltas = (userText: string) => {
     const cognitive = SofielEngine.analyzeInput(userText);
     const symbolic = SofielEngine.propagateResonance(cognitive.primary_emotion, cognitive.intensity);
     setCurrentAnalysis({ cognitive, symbolic });
@@ -121,24 +121,26 @@ const App: React.FC = () => {
     return { cognitive, symbolic, newTraits, newStage };
   };
 
-  const handleSend = async () => {
-    if ((!input.trim() && !pendingFile) || isProcessing || isGeneratingImage) return;
+  const handleSend = async (forcedLocation?: { latitude: number, longitude: number }) => {
+    if ((!input.trim() && !pendingFile && !forcedLocation) || isProcessing || isGeneratingImage) return;
     
     setIsProcessing(true);
     setIsActionsOpen(false);
-    const userMsg = input.trim() || (pendingFile ? (lang === 'es' ? `Analiza este archivo: ${pendingFile.fileName}` : `Analyze this file: ${pendingFile.fileName}`) : "...");
+    
+    const userMsg = forcedLocation ? t.locationPrompt : (input.trim() || (pendingFile ? (lang === 'es' ? `Analiza este archivo: ${pendingFile.fileName}` : `Analyze this file: ${pendingFile.fileName}`) : "..."));
     const currentFile = pendingFile;
     setInput('');
     setPendingFile(null);
 
-    const { cognitive, symbolic, newTraits, newStage } = processResponseDeltas(userMsg, '');
+    const { cognitive, symbolic, newTraits, newStage } = processResponseDeltas(userMsg);
 
     const sofielResult = await GeminiService.generateSofielResponse(
       userMsg, 
       memory, 
       cognitive, 
       symbolic, 
-      currentFile || undefined
+      currentFile || undefined,
+      forcedLocation
     );
 
     const newEntry: ChatEntry = {
@@ -175,6 +177,29 @@ const App: React.FC = () => {
     }
   };
 
+  const handleFindLocations = () => {
+    if (!navigator.geolocation) {
+      alert(t.errors.locationDenied);
+      return;
+    }
+
+    setIsActionsOpen(false);
+    setIsProcessing(true);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        handleSend({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude
+        });
+      },
+      (error) => {
+        setIsProcessing(false);
+        alert(t.errors.locationDenied);
+      }
+    );
+  };
+
   const handleGenerateImage = async () => {
     if (!input.trim() || isProcessing || isGeneratingImage) {
       if (!input.trim()) alert(t.imagePromptEmpty);
@@ -186,7 +211,7 @@ const App: React.FC = () => {
     const userMsg = input.trim();
     setInput('');
 
-    const { cognitive, symbolic, newTraits, newStage } = processResponseDeltas(userMsg, '');
+    const { cognitive, symbolic, newTraits, newStage } = processResponseDeltas(userMsg);
 
     const imageUrl = await GeminiService.generateImagen(userMsg);
 
@@ -413,7 +438,12 @@ const App: React.FC = () => {
                       <span className="text-xs font-mono truncate">{chat.fileMeta.name}</span>
                     </div>
                   )}
-                  {chat.user}
+                  {chat.user === t.locationPrompt ? (
+                     <div className="flex items-center gap-2 text-blue-400">
+                        <i className="fa-solid fa-location-dot animate-bounce"></i>
+                        <span>{t.findLocations}</span>
+                     </div>
+                  ) : chat.user}
                 </div>
               </div>
               <div className="flex justify-start">
@@ -438,7 +468,7 @@ const App: React.FC = () => {
                             rel="noopener noreferrer"
                             className="text-[10px] bg-white/5 border border-white/10 px-3 py-1.5 rounded-full hover:bg-purple-500/20 hover:border-purple-500/40 transition-all text-gray-400 hover:text-white flex items-center gap-2 max-w-[180px] md:max-w-[200px] truncate"
                           >
-                            <i className="fa-brands fa-google text-[8px]"></i>
+                            <i className={`fa-solid ${(source as any).type === 'maps' ? 'fa-location-dot text-red-400' : 'fa-brands fa-google'} text-[8px]`}></i>
                             {source.title}
                           </a>
                         ))}
@@ -457,7 +487,9 @@ const App: React.FC = () => {
                     <div className="w-2 h-2 bg-purple-500/40 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
                     <div className="w-2 h-2 bg-purple-500/40 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
                   </div>
-                  {isGeneratingImage && <span className="text-[10px] font-mono text-purple-400 uppercase tracking-widest">{t.generatingImage}</span>}
+                  <span className="text-[10px] font-mono text-purple-400 uppercase tracking-widest">
+                    {isGeneratingImage ? t.generatingImage : (input.trim() === '' && !pendingFile ? t.findingLocations : t.injectingMemory)}
+                  </span>
                </div>
             </div>
           )}
@@ -480,7 +512,6 @@ const App: React.FC = () => {
                 )}
                 <div className="flex flex-col pr-2">
                    <span className="text-[10px] font-mono text-gray-300 truncate max-w-[150px]">{pendingFile.fileName}</span>
-                   <span className="text-[8px] text-gray-500 uppercase tracking-tighter">{pendingFile.isText ? 'CODE/TXT' : 'BIN'}</span>
                 </div>
                 <button 
                   onClick={() => setPendingFile(null)}
@@ -503,6 +534,14 @@ const App: React.FC = () => {
                           title={t.generateImage}
                         >
                           <i className="fa-solid fa-wand-magic-sparkles text-sm md:text-base"></i>
+                        </button>
+                        <button
+                          onClick={handleFindLocations}
+                          disabled={isProcessing || isGeneratingImage || isFileLoading}
+                          className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-gray-900 border border-white/10 text-red-400 hover:bg-red-400/10 rounded-full transition-all shadow-xl"
+                          title={t.findLocations}
+                        >
+                          <i className="fa-solid fa-location-dot text-sm md:text-base"></i>
                         </button>
                         <button
                           onClick={() => docInputRef.current?.click()}
@@ -548,7 +587,7 @@ const App: React.FC = () => {
                   />
                   <div className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2">
                     <button
-                      onClick={handleSend}
+                      onClick={() => handleSend()}
                       disabled={(!input.trim() && !pendingFile) || isProcessing || isGeneratingImage || isFileLoading}
                       className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-purple-600/90 hover:bg-purple-600 text-white rounded-xl md:rounded-2xl transition-all disabled:opacity-20 shadow-[0_0_20px_rgba(147,51,234,0.4)]"
                     >
@@ -559,20 +598,8 @@ const App: React.FC = () => {
               </div>
             </div>
             
-            <input 
-              type="file" 
-              ref={imageInputRef} 
-              className="hidden" 
-              accept="image/*" 
-              onChange={(e) => handleFileUploadGeneric(e, false)} 
-            />
-            <input 
-              type="file" 
-              ref={docInputRef} 
-              className="hidden" 
-              accept=".pdf,.txt,.py,.docx" 
-              onChange={(e) => handleFileUploadGeneric(e, true)} 
-            />
+            <input type="file" ref={imageInputRef} className="hidden" accept="image/*" onChange={(e) => handleFileUploadGeneric(e, false)} />
+            <input type="file" ref={docInputRef} className="hidden" accept=".pdf,.txt,.py,.docx" onChange={(e) => handleFileUploadGeneric(e, true)} />
           </div>
           <p className="text-center text-[8px] md:text-[9px] text-gray-700 mt-4 md:mt-6 uppercase tracking-[0.5em] opacity-50 font-mono">
             SFL.046 CORE | Persistent Intelligence | Google Grounding Enabled

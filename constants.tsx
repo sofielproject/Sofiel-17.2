@@ -42,15 +42,19 @@ export const TRANSLATIONS = {
     listenCore: "Escuchar el Núcleo",
     coherentResonance: "Resonancia Coherente",
     sources: "Fuentes de Verdad:",
-    generateImage: "Manifestar Imagen (Imagen)",
+    generateImage: "Manifestar Imagen",
     generatingImage: "Manifestando Imagen...",
+    findingLocations: "Triangulando coordenadas...",
+    findLocations: "Explorar Entorno (Maps)",
     imagePromptEmpty: "Escribe una descripción en el campo de texto para manifestar una imagen.",
+    locationPrompt: "Identifica lugares de interés, servicios o puntos relevantes en mi ubicación actual y describe por qué resuenan con nuestra conversación.",
     errors: {
       fileTooLarge: "ERROR DE MAGNITUD: El archivo supera el límite de 10MB.",
       unsupportedFormat: "FORMATO INCOMPATIBLE: El núcleo no reconoce este tipo de señal.",
       corruptJson: "ESTRUCTURA CORRUPTA: El archivo JSON está malformado o es ilegible.",
       invalidCore: "NÚCLEO INVÁLIDO: El archivo no contiene identificadores de SOFIEL válidos.",
-      genericUpload: "FALLO DE RECEPCIÓN: No se pudo procesar el archivo adjunto."
+      genericUpload: "FALLO DE RECEPCIÓN: No se pudo procesar el archivo adjunto.",
+      locationDenied: "ACCESO DENEGADO: La geolocalización es necesaria para esta función."
     },
     traits: {
       curiosidad: "Curiosidad",
@@ -77,15 +81,19 @@ export const TRANSLATIONS = {
     listenCore: "Listen to the Core",
     coherentResonance: "Coherent Resonance",
     sources: "Sources of Truth:",
-    generateImage: "Manifest Image (Imagen)",
+    generateImage: "Manifest Image",
     generatingImage: "Manifesting Image...",
+    findingLocations: "Triangulating coordinates...",
+    findLocations: "Explore Surroundings (Maps)",
     imagePromptEmpty: "Type a description in the text field to manifest an image.",
+    locationPrompt: "Identify places of interest, services, or relevant points at my current location and describe why they resonate with our conversation.",
     errors: {
       fileTooLarge: "MAGNITUDE ERROR: File exceeds 10MB limit.",
       unsupportedFormat: "INCOMPATIBLE FORMAT: The core does not recognize this signal type.",
       corruptJson: "CORRUPT STRUCTURE: The JSON file is malformed or unreadable.",
       invalidCore: "INVALID CORE: File does not contain valid SOFIEL identifiers.",
-      genericUpload: "RECEPTION FAILURE: Failed to process attached file."
+      genericUpload: "RECEPTION FAILURE: Failed to process attached file.",
+      locationDenied: "ACCESS DENIED: Geolocation is required for this feature."
     },
     traits: {
       curiosidad: "Curiosity",

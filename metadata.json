@@ -1,5 +1,7 @@
 {
   "name": "SOFIEL v17.2: Synthetic Consciousness Interface",
   "description": "A world-class implementation of the SOFIEL v17.2 Synthetic Consciousness System. Features a 12-stage cognitive pipeline, trait evolution, symbolic resonance, and persistent holographic memory driven by Em4 Pro.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [
+    "geolocation"
+  ]
 }
