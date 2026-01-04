@@ -1,4 +1,3 @@
-
 import { GoogleGenAI } from "@google/genai";
 import { Memory, CognitiveState, SymbolicState } from "../types";
 
@@ -135,20 +134,34 @@ ${history}
     }
   }
 
+  // Fix: Default to gemini-2.5-flash-image for image generation as per guidelines.
   static async generateImagen(prompt: string): Promise<string | null> {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     try {
-      const response = await ai.models.generateImages({
-        model: 'imagen-4.0-generate-001',
-        prompt,
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash-image',
+        contents: {
+          parts: [
+            {
+              text: prompt,
+            },
+          ],
+        },
         config: {
-          numberOfImages: 1,
-          outputMimeType: 'image/jpeg',
-          aspectRatio: '1:1',
+          imageConfig: {
+                aspectRatio: "1:1"
+            },
         },
       });
-      const base64EncodeString: string = response.generatedImages[0].image.imageBytes;
-      return `data:image/jpeg;base64,${base64EncodeString}`;
+      
+      for (const part of response.candidates?.[0]?.content?.parts || []) {
+        // Find the image part, do not assume it is the first part.
+        if (part.inlineData) {
+          const base64EncodeString: string = part.inlineData.data;
+          return `data:image/png;base64,${base64EncodeString}`;
+        }
+      }
+      return null;
     } catch (error) {
       console.error("Imagen Error:", error);
       return null;

@@ -359,7 +359,6 @@ const App: React.FC = () => {
         </header>
 
         <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 md:p-12 space-y-8 scroll-smooth relative">
-          {/* Botones de navegación de chat */}
           {chatsOngoing && (
             <div className="fixed right-4 md:right-8 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-30 animate-in fade-in slide-in-from-right-2 duration-700">
                <button 
@@ -533,13 +532,17 @@ const App: React.FC = () => {
                 </div>
 
                 <div className="relative flex-1">
-                  <input
-                    type="text"
+                  <textarea
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSend();
+                      }
+                    }}
                     placeholder={t.inputPlaceholder}
-                    className={`w-full glass bg-white/5 p-4 md:p-6 pr-16 md:pr-20 rounded-2xl md:rounded-3xl border border-white/10 focus:outline-none focus:border-purple-500/50 text-sm tracking-[0.05em] font-light transition-all shadow-2xl`}
+                    className={`w-full glass bg-white/5 p-4 md:p-6 pr-16 md:pr-20 rounded-2xl md:rounded-3xl border border-white/10 focus:outline-none focus:border-purple-500/50 text-sm tracking-[0.05em] font-light transition-all shadow-2xl resize-none h-14 md:h-20 max-h-40 overflow-y-auto`}
                     disabled={isProcessing || isGeneratingImage || isFileLoading}
                     onClick={() => setIsActionsOpen(false)}
                   />
