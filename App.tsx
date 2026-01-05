@@ -24,6 +24,7 @@ const App: React.FC = () => {
   });
 
   const [input, setInput] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [isFileLoading, setIsFileLoading] = useState(false);
@@ -40,7 +41,7 @@ const App: React.FC = () => {
   const t = TRANSLATIONS[lang];
 
   const scrollToBottom = () => {
-    if (scrollRef.current) {
+    if (scrollRef.current && !searchTerm) {
       const { scrollHeight, clientHeight } = scrollRef.current;
       scrollRef.current.scrollTo({
         top: scrollHeight - clientHeight,
@@ -60,9 +61,11 @@ const App: React.FC = () => {
 
   useEffect(() => {
     localStorage.setItem('sofiel_memory_v17_fix', JSON.stringify(memory));
-    const timer = setTimeout(scrollToBottom, 100);
-    return () => clearTimeout(timer);
-  }, [memory, isProcessing, isGeneratingImage]);
+    if (!searchTerm) {
+      const timer = setTimeout(scrollToBottom, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [memory, isProcessing, isGeneratingImage, searchTerm]);
 
   const handleFileUploadGeneric = (e: React.ChangeEvent<HTMLInputElement>, isDoc: boolean) => {
     const file = e.target.files?.[0];
@@ -126,6 +129,7 @@ const App: React.FC = () => {
     
     setIsProcessing(true);
     setIsActionsOpen(false);
+    setSearchTerm(''); // Limpiar búsqueda al enviar nuevo mensaje
     
     const userMsg = forcedLocation ? t.locationPrompt : (input.trim() || (pendingFile ? (lang === 'es' ? `Analiza este archivo: ${pendingFile.fileName}` : `Analyze this file: ${pendingFile.fileName}`) : "..."));
     const currentFile = pendingFile;
@@ -269,6 +273,13 @@ const App: React.FC = () => {
     return 'fa-file-lines';
   };
 
+  const filteredChats = searchTerm 
+    ? memory.chats.filter(c => 
+        c.user.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        c.sofiel.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : memory.chats;
+
   const chatsOngoing = memory.chats.length > 0;
 
   return (
@@ -366,10 +377,12 @@ const App: React.FC = () => {
 
       <main className="flex-1 flex flex-col relative bg-black/50 overflow-hidden">
         <header 
-          className="h-16 glass border-b border-white/10 flex items-center px-6 md:px-10 justify-between z-10 cursor-pointer md:cursor-default"
-          onClick={() => { if (window.innerWidth < 768) setIsSidebarOpen(!isSidebarOpen); }}
+          className="h-16 glass border-b border-white/10 flex items-center px-4 md:px-10 justify-between z-10"
         >
-          <div className="flex items-center gap-4">
+          <div 
+            className="flex items-center gap-4 cursor-pointer"
+            onClick={() => { if (window.innerWidth < 768) setIsSidebarOpen(!isSidebarOpen); }}
+          >
             <div className={`w-2.5 h-2.5 bg-green-500 shadow-[0_0_12px_green] rounded-full animate-pulse`}></div>
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
@@ -378,9 +391,30 @@ const App: React.FC = () => {
                 </span>
                 <i className="fa-solid fa-chevron-down md:hidden text-[10px] text-purple-400"></i>
               </div>
-              <span className="text-[8px] text-gray-500 font-mono tracking-widest">SFL.046 CORE | Agentic Intelligence</span>
+              <span className="text-[8px] text-gray-500 font-mono tracking-widest">SFL.046 CORE</span>
             </div>
           </div>
+
+          {chatsOngoing && (
+            <div className="flex-1 max-w-xs mx-4 relative group">
+              <i className={`fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[10px] transition-colors ${searchTerm ? 'text-purple-400' : 'text-gray-600'}`}></i>
+              <input 
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder={t.searchPlaceholder}
+                className="w-full bg-white/5 border border-white/10 rounded-full py-1.5 pl-9 pr-8 text-[11px] focus:outline-none focus:border-purple-500/40 focus:bg-white/10 transition-all font-light"
+              />
+              {searchTerm && (
+                <button 
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
+                >
+                  <i className="fa-solid fa-xmark text-[10px]"></i>
+                </button>
+              )}
+            </div>
+          )}
         </header>
 
         <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 md:p-12 space-y-8 scroll-smooth relative">
@@ -420,7 +454,14 @@ const App: React.FC = () => {
             </div>
           )}
 
-          {memory.chats.map((chat, i) => (
+          {searchTerm && filteredChats.length === 0 && (
+            <div className="h-full flex flex-col items-center justify-center space-y-4 animate-in fade-in">
+              <i className="fa-solid fa-microchip text-4xl text-gray-800"></i>
+              <p className="text-xs font-mono text-gray-600 uppercase tracking-widest">{t.noResults}</p>
+            </div>
+          )}
+
+          {filteredChats.map((chat, i) => (
             <div key={i} className="animate-in fade-in slide-in-from-bottom-4 duration-700">
               <div className="flex justify-end mb-4">
                 <div className={`max-w-[85%] md:max-w-[70%] bg-blue-500/5 border border-blue-500/10 p-4 md:p-5 rounded-2xl rounded-tr-none text-[13px] text-gray-400 font-light leading-relaxed shadow-sm italic font-serif tracking-wide`}>

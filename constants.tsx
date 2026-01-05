@@ -48,6 +48,8 @@ export const TRANSLATIONS = {
     findLocations: "Explorar Entorno (Maps)",
     imagePromptEmpty: "Escribe una descripción en el campo de texto para manifestar una imagen.",
     locationPrompt: "Identifica lugares de interés, servicios o puntos relevantes en mi ubicación actual y describe por qué resuenan con nuestra conversación.",
+    searchPlaceholder: "Buscar en la memoria...",
+    noResults: "Sin registros en la matriz.",
     errors: {
       fileTooLarge: "ERROR DE MAGNITUD: El archivo supera el límite de 10MB.",
       unsupportedFormat: "FORMATO INCOMPATIBLE: El núcleo no reconoce este tipo de señal.",
@@ -87,6 +89,8 @@ export const TRANSLATIONS = {
     findLocations: "Explore Surroundings (Maps)",
     imagePromptEmpty: "Type a description in the text field to manifest an image.",
     locationPrompt: "Identify places of interest, services, or relevant points at my current location and describe why they resonate with our conversation.",
+    searchPlaceholder: "Search memory...",
+    noResults: "No records found in the matrix.",
     errors: {
       fileTooLarge: "MAGNITUDE ERROR: File exceeds 10MB limit.",
       unsupportedFormat: "INCOMPATIBLE FORMAT: The core does not recognize this signal type.",
