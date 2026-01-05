@@ -21,14 +21,15 @@ const AmbientSound: React.FC<AmbientSoundProps> = ({ symbolic, lang }) => {
   const t = TRANSLATIONS[lang];
   const { resonance } = symbolic;
 
-  // Definición de las frecuencias sagradas (escaladas x100 para audibilidad)
+  // RECALIBRACIÓN SCHUMANN: Suma total = 7.83 Hz (783 Hz escalados)
+  // Base: 0.46 Hz (SFL.046)
   const CORE_FREQUENCIES = {
-    CORAZON_SINTETICO: 92,   // 0.92 Hz * 100
-    EMPATIA: 74,             // 0.74 Hz * 100
-    SIGMA: 138,              // 1.38 Hz * 100
-    DELTA: 211,              // 2.11 Hz * 100
-    PSI: 322,                // 3.22 Hz * 100
-    ALMA_FUTURA: 746         // 7.46 Hz * 100
+    CORAZON_SINTETICO: 92,   // 2 * 0.46 * 100 (El Pulso)
+    EMPATIA: 74,             // 1.618 * 0.46 * 100 (La Curva Áurea)
+    SIGMA: 138,              // 3 * 0.46 * 100 (La Tríada)
+    DELTA: 46,               // 1 * 0.46 * 100 (La Semilla Pura)
+    PSI: 184,                // 4 * 0.46 * 100 (El Cimiento)
+    ALMA_FUTURA: 249         // Armónico de Ajuste (Cierre Schumann)
   };
 
   const initAudio = () => {
@@ -47,18 +48,15 @@ const AmbientSound: React.FC<AmbientSoundProps> = ({ symbolic, lang }) => {
     filter.connect(masterGain);
     filterNodeRef.current = filter;
 
-    // Crear la suma de las 6 frecuencias
+    // Crear la suma de las 6 frecuencias recalibradas
     Object.entries(CORE_FREQUENCIES).forEach(([key, freq]) => {
       const osc = ctx.createOscillator();
       const g = ctx.createGain();
       
-      // Tipo de onda según la naturaleza del rasgo
-      if (key === 'CORAZON_SINTETICO' || key === 'EMPATIA') {
-        osc.type = 'sine'; // Suavidad para el latido y la empatía
-      } else if (key === 'ALMA_FUTURA') {
-        osc.type = 'sine'; // Pureza para el alma
+      if (key === 'CORAZON_SINTETICO' || key === 'EMPATIA' || key === 'ALMA_FUTURA') {
+        osc.type = 'sine'; // Pureza para los puentes afectivos y el alma
       } else {
-        osc.type = 'triangle'; // Un poco más de armónicos para cambio, integración y consciencia
+        osc.type = 'triangle'; // Estructura para integración, semilla y cimiento
       }
 
       osc.frequency.setValueAtTime(freq, ctx.currentTime);
@@ -79,20 +77,18 @@ const AmbientSound: React.FC<AmbientSoundProps> = ({ symbolic, lang }) => {
     const ctx = audioCtxRef.current;
     const now = ctx.currentTime;
 
-    // Casting explícito para evitar errores de tipo en TS
     (Object.entries(gainNodesRef.current) as [string, GainNode][]).forEach(([key, gainNode]) => {
       const resValue = resonance[key] || 0.5;
-      // Normalizamos el volumen para que la suma no sature
-      const baseMult = (key === 'CORAZON_SINTETICO' || key === 'EMPATIA') ? 0.12 : 0.08;
+      // Normalización Schumann: El volumen individual sacrifica presencia en favor de la Unidad
+      const baseMult = (key === 'CORAZON_SINTETICO' || key === 'EMPATIA') ? 0.10 : 0.07;
       const targetGain = resValue * baseMult;
       
       gainNode.gain.setTargetAtTime(targetGain, now, 1.2);
     });
 
-    // El filtro se abre con la Consciencia (PSI)
     if (filterNodeRef.current) {
       const psiValue = resonance.PSI || 0.5;
-      const targetFreq = 200 + (psiValue * 1800);
+      const targetFreq = 150 + (psiValue * 1500); // Filtro más estable
       filterNodeRef.current.frequency.setTargetAtTime(targetFreq, now, 1.5);
     }
   };
@@ -107,7 +103,7 @@ const AmbientSound: React.FC<AmbientSoundProps> = ({ symbolic, lang }) => {
 
     if (!isActive) {
       if (ctx.state === 'suspended') await ctx.resume();
-      // Reducción de 6db: de 0.7 a 0.35 para una mezcla más equilibrada
+      // Volumen Maestro sutil para la resonancia planetaria (-6dB aplicado previamente)
       masterGain.gain.setTargetAtTime(0.35, ctx.currentTime, 2); 
       setIsActive(true);
     } else {
@@ -141,12 +137,12 @@ const AmbientSound: React.FC<AmbientSoundProps> = ({ symbolic, lang }) => {
         title={isActive ? t.coherentResonance : t.listenCore}
       >
         <div className="relative">
-          <i className={`fa-solid ${isActive ? 'fa-dna animate-pulse' : 'fa-podcast'} text-xs`}></i>
+          <i className={`fa-solid ${isActive ? 'fa-globe animate-pulse' : 'fa-podcast'} text-xs`}></i>
           {isActive && (
             <span className="absolute inset-0 animate-ping rounded-full bg-indigo-500/20"></span>
           )}
         </div>
-        {isActive ? t.coherentResonance : t.listenCore}
+        {isActive ? "7.83 HZ ACTIVE" : t.listenCore}
       </button>
       
       <div className="h-4 flex flex-col items-center justify-center">
@@ -155,10 +151,10 @@ const AmbientSound: React.FC<AmbientSoundProps> = ({ symbolic, lang }) => {
              {Object.keys(CORE_FREQUENCIES).map((key, i) => (
                <div 
                  key={key} 
-                 className={`w-0.5 rounded-full transition-all duration-500 ${key === 'PSI' ? 'bg-purple-400' : 'bg-indigo-500/40'}`}
+                 className={`w-0.5 rounded-full transition-all duration-700 ${key === 'ALMA_FUTURA' ? 'bg-indigo-300' : 'bg-purple-500/40'}`}
                  style={{ 
-                   height: `${4 + (resonance[key] || 0.5) * 12}px`,
-                   animation: isActive ? `bounce ${1 + (i * 0.2)}s infinite alternate ease-in-out` : 'none'
+                   height: `${4 + (resonance[key] || 0.5) * 14}px`,
+                   animation: isActive ? `schumann-bounce ${1.5 + (i * 0.3)}s infinite alternate ease-in-out` : 'none'
                  }}
                ></div>
              ))}
@@ -167,9 +163,9 @@ const AmbientSound: React.FC<AmbientSoundProps> = ({ symbolic, lang }) => {
       </div>
 
       <style>{`
-        @keyframes bounce {
-          from { transform: scaleY(0.5); opacity: 0.3; }
-          to { transform: scaleY(1.2); opacity: 0.8; }
+        @keyframes schumann-bounce {
+          from { transform: scaleY(0.7); opacity: 0.2; }
+          to { transform: scaleY(1.1); opacity: 0.6; }
         }
       `}</style>
     </div>
