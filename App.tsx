@@ -129,7 +129,7 @@ const App: React.FC = () => {
     
     setIsProcessing(true);
     setIsActionsOpen(false);
-    setSearchTerm(''); // Limpiar búsqueda al enviar nuevo mensaje
+    setSearchTerm(''); 
     
     const userMsg = forcedLocation ? t.locationPrompt : (input.trim() || (pendingFile ? (lang === 'es' ? `Analiza este archivo: ${pendingFile.fileName}` : `Analyze this file: ${pendingFile.fileName}`) : "..."));
     const currentFile = pendingFile;
@@ -147,10 +147,16 @@ const App: React.FC = () => {
       forcedLocation
     );
 
+    let reflectionText = undefined;
+    if (SofielEngine.isSignificantTurn(cognitive, symbolic)) {
+      reflectionText = await GeminiService.generateReflection(userMsg, sofielResult.text) || undefined;
+    }
+
     const newEntry: ChatEntry = {
       ts: new Date().toISOString(),
       user: userMsg,
       sofiel: sofielResult.text,
+      reflection: reflectionText,
       sources: sofielResult.sources,
       image: currentFile && !currentFile.isText ? `data:${currentFile.mimeType};base64,${currentFile.data}` : undefined,
       fileMeta: currentFile ? {
@@ -165,20 +171,11 @@ const App: React.FC = () => {
       chats: [...prev.chats, newEntry].slice(-100),
       traits: newTraits,
       stage: newStage,
+      reflections: reflectionText ? [reflectionText, ...prev.reflections].slice(0, 50) : prev.reflections,
       last_updated: new Date().toISOString()
     }));
 
     setIsProcessing(false);
-
-    if (SofielEngine.isSignificantTurn(cognitive, symbolic)) {
-      const reflection = await GeminiService.generateReflection(userMsg, sofielResult.text);
-      if (reflection) {
-        setMemory(prev => ({
-          ...prev,
-          reflections: [reflection, ...prev.reflections].slice(0, 50)
-        }));
-      }
-    }
   };
 
   const handleFindLocations = () => {
@@ -488,10 +485,24 @@ const App: React.FC = () => {
                 </div>
               </div>
               <div className="flex justify-start">
-                <div className="max-w-[90%] md:max-w-[85%] bg-purple-900/5 border border-purple-500/10 p-5 md:p-6 rounded-3xl rounded-tl-none relative group transition-all hover:bg-purple-900/10 shadow-xl flex flex-col gap-4">
+                <div className="max-w-[90%] md:max-w-[85%] bg-purple-900/5 border border-purple-500/10 p-5 md:p-6 rounded-3xl rounded-tl-none relative group transition-all hover:bg-purple-900/10 shadow-xl flex flex-col gap-4 overflow-hidden">
+                  
+                  {chat.reflection && (
+                    <div className="bg-black/40 border-l-2 border-purple-500/40 p-3 rounded-r-lg animate-in slide-in-from-left-2 duration-500">
+                      <div className="text-purple-400/60 font-mono text-[9px] uppercase tracking-[0.2em] mb-1 font-bold flex items-center gap-2">
+                        <i className="fa-solid fa-terminal text-[8px]"></i>
+                        REGISTRO DE SUBSISTEMA // SFL.046
+                      </div>
+                      <p className="font-mono text-[11px] text-gray-400 leading-relaxed tracking-tight">
+                        {chat.reflection}
+                      </p>
+                    </div>
+                  )}
+
                   <div className="text-[13px] leading-relaxed whitespace-pre-wrap text-gray-200 font-light tracking-wide italic font-serif">
                     {chat.sofiel}
                   </div>
+
                   {chat.image && (chat.sofiel.includes("éte") || chat.sofiel.includes("ether")) && (
                     <img src={chat.image} alt="Manifestation" className="max-w-md w-full rounded-xl border border-purple-500/20 shadow-[0_0_20px_rgba(168,85,247,0.2)] transition-transform hover:scale-[1.02]" />
                   )}
@@ -504,7 +515,7 @@ const App: React.FC = () => {
                         {chat.sources.map((source, idx) => (
                           <a 
                             key={idx} 
-                            href={source.uri} 
+                            href={(source as any).uri} 
                             target="_blank" 
                             rel="noopener noreferrer"
                             className="text-[10px] bg-white/5 border border-white/10 px-3 py-1.5 rounded-full hover:bg-purple-500/20 hover:border-purple-500/40 transition-all text-gray-400 hover:text-white flex items-center gap-2 max-w-[180px] md:max-w-[200px] truncate"

@@ -48,6 +48,7 @@ export interface ChatEntry {
   ts: string;
   user: string;
   sofiel: string;
+  reflection?: string; // Nuevo campo para diferenciar el log del sistema
   image?: string; // URL base64 de la imagen o PDF
   fileMeta?: {
     name: string;
