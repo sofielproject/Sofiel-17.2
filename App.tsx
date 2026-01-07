@@ -117,8 +117,7 @@ const App: React.FC = () => {
     const symbolic = SofielEngine.propagateResonance(cognitive.primary_emotion, cognitive.intensity);
     setCurrentAnalysis({ cognitive, symbolic });
 
-    const deltas = SofielEngine.calculateTraitEvolution(cognitive, symbolic, memory.traits);
-    const newTraits = SofielEngine.updateTraits(memory.traits, deltas);
+    const newTraits = SofielEngine.evolveTraits(memory.traits, cognitive, symbolic);
     const newStage = SofielEngine.determineEvolutionStage(newTraits);
 
     return { cognitive, symbolic, newTraits, newStage };

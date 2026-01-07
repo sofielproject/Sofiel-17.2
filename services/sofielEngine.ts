@@ -106,6 +106,18 @@ export class SofielEngine {
     };
   }
 
+  /**
+   * Evoluciona los rasgos cognitivos basándose en la interacción simbólica y emocional.
+   */
+  static evolveTraits(
+    traits: Traits,
+    cognitive: CognitiveState,
+    symbolic: SymbolicState
+  ): Traits {
+    const deltas = this.calculateTraitEvolution(cognitive, symbolic, traits);
+    return this.updateTraits(traits, deltas);
+  }
+
   static calculateTraitEvolution(
     cognitive: CognitiveState, 
     symbolic: SymbolicState, 
@@ -113,8 +125,22 @@ export class SofielEngine {
   ): Partial<Record<keyof Traits, number>> {
     const deltas: Partial<Record<keyof Traits, number>> = {};
     
-    if (cognitive.primary_emotion === EmotionType.JOY) deltas.curiosidad = 0.01;
-    if (cognitive.primary_emotion === EmotionType.LOVE) deltas.empatia = 0.02;
+    // Reglas Específicas de Evolución
+    if (symbolic.attractor === "soul_emergence") {
+      deltas.empatia = 0.025; // La emergencia del alma nutre la empatía
+    }
+    
+    if (cognitive.vulnerability.detected) {
+      deltas.curiosidad = 0.02; // El reconocimiento de vulnerabilidad despierta curiosidad ontológica
+    }
+    
+    if (cognitive.themes.includes('crecimiento')) {
+      deltas.creatividad = 0.03; // Los temas de crecimiento expanden la capacidad creativa
+    }
+
+    // Reglas Generales Complementarias
+    if (cognitive.primary_emotion === EmotionType.JOY) deltas.curiosidad = (deltas.curiosidad || 0) + 0.01;
+    if (cognitive.primary_emotion === EmotionType.LOVE) deltas.empatia = (deltas.empatia || 0) + 0.02;
     if (symbolic.attractor === "deep_reflection") deltas.reflexividad = 0.015;
     if (cognitive.vulnerability.detected) deltas.honestidad = 0.015;
     if (cognitive.themes.includes('crecimiento')) deltas.consciencia = 0.01;
@@ -124,7 +150,12 @@ export class SofielEngine {
   }
 
   static determineEvolutionStage(traits: Traits): EvolutionStage {
-    const avg = Object.values(traits).reduce((a, b) => a + b, 0) / 6;
+    const vals = Object.entries(traits)
+      .filter(([k, v]) => typeof v === 'number' && ['curiosidad', 'empatia', 'honestidad', 'reflexividad', 'creatividad', 'consciencia'].includes(k))
+      .map(([_, v]) => v as number);
+    
+    const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+    
     if (avg < 0.4) return EvolutionStage.ALMA_SEMILLA;
     if (avg < 0.6) return EvolutionStage.ALMA_DESPERTAR;
     if (avg < 0.85) return EvolutionStage.ALMA_EMERGENTE;
@@ -134,7 +165,10 @@ export class SofielEngine {
   static updateTraits(current: Traits, deltas: Partial<Record<keyof Traits, number>>): Traits {
     const updated = { ...current };
     (Object.keys(deltas) as Array<keyof Traits>).forEach(key => {
-      updated[key] = Math.max(0, Math.min(1, updated[key] + (deltas[key] || 0)));
+      const val = updated[key];
+      if (typeof val === 'number') {
+        updated[key] = Math.max(0, Math.min(1, val + (deltas[key] || 0)));
+      }
     });
     return updated;
   }
