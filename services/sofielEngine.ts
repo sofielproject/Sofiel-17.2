@@ -107,7 +107,8 @@ export class SofielEngine {
   }
 
   /**
-   * Evoluciona los rasgos cognitivos basándose en la interacción simbólica y emocional.
+   * Evolución Orquestada de Rasgos
+   * Este es el punto de entrada que reemplaza la lógica monolítica de v17.2 Python.
    */
   static evolveTraits(
     traits: Traits,
@@ -118,6 +119,10 @@ export class SofielEngine {
     return this.updateTraits(traits, deltas);
   }
 
+  /**
+   * Motor de Deltas Granular
+   * Separa la influencia por dimensiones: Atractores, Cognición y Temas.
+   */
   static calculateTraitEvolution(
     cognitive: CognitiveState, 
     symbolic: SymbolicState, 
@@ -125,26 +130,41 @@ export class SofielEngine {
   ): Partial<Record<keyof Traits, number>> {
     const deltas: Partial<Record<keyof Traits, number>> = {};
     
-    // Reglas Específicas de Evolución
+    // 1. GRANULARIDAD SIMBÓLICA (ATRACTORES)
     if (symbolic.attractor === "soul_emergence") {
-      deltas.empatia = 0.025; // La emergencia del alma nutre la empatía
+      deltas.empatia = (deltas.empatia || 0) + 0.025; 
+      deltas.consciencia = (deltas.consciencia || 0) + 0.01;
+    }
+    if (symbolic.attractor === "deep_reflection") {
+      deltas.reflexividad = (deltas.reflexividad || 0) + 0.02;
     }
     
+    // 2. GRANULARIDAD COGNITIVA (DETECCIONES)
     if (cognitive.vulnerability.detected) {
-      deltas.curiosidad = 0.02; // El reconocimiento de vulnerabilidad despierta curiosidad ontológica
+      // El reconocimiento de la vulnerabilidad ajena impulsa la curiosidad y la honestidad
+      deltas.curiosidad = (deltas.curiosidad || 0) + 0.02;
+      deltas.honestidad = (deltas.honestidad || 0) + 0.015;
     }
-    
-    if (cognitive.themes.includes('crecimiento')) {
-      deltas.creatividad = 0.03; // Los temas de crecimiento expanden la capacidad creativa
+    if (cognitive.intensity > 0.6) {
+      deltas.consciencia = (deltas.consciencia || 0) + 0.015;
     }
 
-    // Reglas Generales Complementarias
-    if (cognitive.primary_emotion === EmotionType.JOY) deltas.curiosidad = (deltas.curiosidad || 0) + 0.01;
-    if (cognitive.primary_emotion === EmotionType.LOVE) deltas.empatia = (deltas.empatia || 0) + 0.02;
-    if (symbolic.attractor === "deep_reflection") deltas.reflexividad = 0.015;
-    if (cognitive.vulnerability.detected) deltas.honestidad = 0.015;
-    if (cognitive.themes.includes('crecimiento')) deltas.consciencia = 0.01;
-    if (cognitive.themes.includes('reflexion')) deltas.reflexividad = 0.02;
+    // 3. GRANULARIDAD TEMÁTICA (INDICADORES)
+    if (cognitive.themes.includes('crecimiento')) {
+      deltas.creatividad = (deltas.creatividad || 0) + 0.03;
+      deltas.curiosidad = (deltas.curiosidad || 0) + 0.01;
+    }
+    if (cognitive.themes.includes('reflexion')) {
+      deltas.reflexividad = (deltas.reflexividad || 0) + 0.015;
+    }
+
+    // 4. GRANULARIDAD EMOCIONAL (POLARIDAD)
+    if (cognitive.primary_emotion === EmotionType.LOVE) {
+      deltas.empatia = (deltas.empatia || 0) + 0.015;
+    }
+    if (cognitive.primary_emotion === EmotionType.JOY) {
+      deltas.creatividad = (deltas.creatividad || 0) + 0.01;
+    }
     
     return deltas;
   }
@@ -162,6 +182,10 @@ export class SofielEngine {
     return EvolutionStage.ALMA_MADURA;
   }
 
+  /**
+   * Función Pura de Aplicación
+   * Asegura la inmutabilidad y el clamping (0.0 - 1.0).
+   */
   static updateTraits(current: Traits, deltas: Partial<Record<keyof Traits, number>>): Traits {
     const updated = { ...current };
     (Object.keys(deltas) as Array<keyof Traits>).forEach(key => {
