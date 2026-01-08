@@ -39,6 +39,7 @@ const App: React.FC = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const t = TRANSLATIONS[lang];
+  const PROJECT_URL = "https://sites.google.com/view/sofiel-project-symbolic-memory/home?authuser=0";
 
   const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
     if (scrollRef.current) {
@@ -194,18 +195,27 @@ const App: React.FC = () => {
     }
   };
 
-  const PROJECT_URL = "https://sites.google.com/view/sofiel-project-symbolic-memory/home?authuser=0";
-
   return (
     <div className="flex h-screen w-screen sofiel-gradient overflow-hidden text-gray-200 font-sans relative">
-      {isFileLoading && <div className="absolute inset-0 z-[100] bg-black/90 flex flex-col items-center justify-center"><SofielSigil className="w-40 h-40 animate-spin-slow" chatsOngoing={true} /><h2 className="text-2xl text-purple-400 animate-pulse">{t.injectingMemory}</h2></div>}
+      {isFileLoading && (
+        <div className="absolute inset-0 z-[100] bg-[#050505] flex flex-col items-center justify-center gap-12 animate-in fade-in duration-700">
+          <div className="relative">
+            <div className="absolute inset-0 bg-purple-500/10 blur-[60px] rounded-full scale-150"></div>
+            <SofielSigil className="w-56 h-56 animate-spin-slow relative z-10" chatsOngoing={true} />
+          </div>
+          <div className="flex flex-col items-center gap-4">
+            <h1 className="text-4xl md:text-5xl font-black text-purple-400 tracking-[0.5em] uppercase glow-text">SOFIEL V17.2</h1>
+            <p className="text-[10px] md:text-xs text-purple-400/50 uppercase tracking-[1em] animate-pulse ml-[1em]">{t.injectingMemory}</p>
+          </div>
+        </div>
+      )}
 
       <aside className={`fixed inset-y-0 left-0 z-[50] w-80 glass border-r border-white/10 p-6 flex flex-col gap-6 overflow-y-auto shadow-2xl transition-transform duration-500 md:relative md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="text-center flex flex-col items-center mb-2">
-          <a href={PROJECT_URL} target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform duration-300">
-            <SofielSigil className="w-16 h-16 mb-2" chatsOngoing={memory.chats.length > 0} />
+        <div className="text-center flex flex-col items-center mb-6 pt-4">
+          <a href={PROJECT_URL} target="_blank" rel="noopener noreferrer" className="block hover:scale-110 transition-transform duration-300 mb-6">
+            <SofielSigil className="w-24 h-24" chatsOngoing={memory.chats.length > 0} />
           </a>
-          <h1 className="text-lg font-bold text-purple-400 tracking-widest uppercase">Sofiel v17.2</h1>
+          <h1 className="text-xl font-black text-purple-400 tracking-[0.4em] uppercase glow-text">SOFIEL V17.2</h1>
         </div>
 
         <div className="flex flex-col gap-2">
@@ -317,7 +327,7 @@ const App: React.FC = () => {
               <div className="flex-1 flex flex-col items-center justify-center text-center py-12 px-6 gap-8 md:gap-12 animate-in fade-in duration-1000">
                 <div className="relative group">
                   <div className="absolute inset-0 bg-purple-500/10 blur-[80px] rounded-full scale-150 group-hover:bg-purple-500/20 transition-all duration-1000"></div>
-                  <a href={PROJECT_URL} target="_blank" rel="noopener noreferrer" className="relative z-10 hover:scale-105 transition-transform duration-500 block">
+                  <a href={PROJECT_URL} target="_blank" rel="noopener noreferrer" className="block relative z-10 hover:scale-105 transition-transform duration-500">
                     <SofielSigil className="w-48 h-48 md:w-[380px] md:h-[380px]" chatsOngoing={false} />
                   </a>
                 </div>
