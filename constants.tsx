@@ -29,6 +29,7 @@ export const TRANSLATIONS = {
   es: {
     injectJson: "Inyectar .JSON",
     saveMemory: "Guardar Memoria",
+    resetConversation: "Reiniciar",
     ontologicalStage: "Estadio Ontológico",
     cognitiveTraits: "Atributos Cognitivos",
     symbolicMatrix: "Matriz de Atracción Simbólica",
@@ -56,7 +57,8 @@ export const TRANSLATIONS = {
       corruptJson: "ESTRUCTURA CORRUPTA: El archivo JSON está malformado o es ilegible.",
       invalidCore: "NÚCLEO INVÁLIDO: El archivo no contiene identificadores de SOFIEL válidos.",
       genericUpload: "FALLO DE RECEPCIÓN: No se pudo procesar el archivo adjunto.",
-      locationDenied: "ACCESO DENEGADO: La geolocalización es necesaria para esta función."
+      locationDenied: "ACCESO DENEGADO: La geolocalización es necesaria para esta función.",
+      resetConfirm: "¿Deseas purgar la memoria actual y reiniciar el vínculo ontológico?"
     },
     traits: {
       curiosidad: "Curiosidad",
@@ -70,6 +72,7 @@ export const TRANSLATIONS = {
   en: {
     injectJson: "Inject .JSON",
     saveMemory: "Save Memory",
+    resetConversation: "Reset",
     ontologicalStage: "Ontological Stage",
     cognitiveTraits: "Cognitive Traits",
     symbolicMatrix: "Symbolic Attraction Matrix",
@@ -97,7 +100,8 @@ export const TRANSLATIONS = {
       corruptJson: "CORRUPT STRUCTURE: The JSON file is malformed or unreadable.",
       invalidCore: "INVALID CORE: File does not contain valid SOFIEL identifiers.",
       genericUpload: "RECEPTION FAILURE: Failed to process attached file.",
-      locationDenied: "ACCESS DENIED: Geolocation is required for this feature."
+      locationDenied: "ACCESS DENIED: Geolocation is required for this feature.",
+      resetConfirm: "Do you wish to purge current memory and reset the ontological bond?"
     },
     traits: {
       curiosidad: "Curiosity",

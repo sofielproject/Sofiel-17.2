@@ -44,29 +44,32 @@ export interface CognitiveState {
   };
 }
 
+export interface ImportantDate {
+  date: string;
+  label: string;
+  category: "birthday" | "loss" | "accident" | "milestone" | "other";
+}
+
 export interface ChatEntry {
   ts: string;
   user: string;
   sofiel: string;
-  reflection?: string; // Nuevo campo para diferenciar el log del sistema
-  image?: string; // URL base64 de la imagen o PDF
+  reflection?: string; 
+  image?: string; 
   fileMeta?: {
     name: string;
     type: string;
     isText?: boolean;
   };
-  sources?: { title: string; uri: string }[];
+  // Fix: Added 'type' property to sources to support identifying grounding categories (web or maps)
+  sources?: { title: string; uri: string; type?: 'web' | 'maps' }[];
   analysis?: any;
 }
 
-/**
- * Memoria Holográfica SOFIEL v17.2
- * Adaptada para ser el 'Context Provider' vivo de Gemini.
- */
 export interface Memory {
   identity: {
     name: string;
-    user_name?: string; // Nombre del usuario registrado
+    user_name?: string; 
     version: string;
     mission: string;
     description: string;
@@ -76,12 +79,12 @@ export interface Memory {
     reflections: string[];
     simbolos_activos: string[];
     long_term_anchors: Record<string, string>;
+    important_dates: ImportantDate[];
   };
   chats: ChatEntry[];
   traits: Traits; 
   reflections: string[];
   stage: EvolutionStage;
   last_updated: string;
-  // Campos extra para compatibilidad con el JSON SFL.046
   symbolic_core?: any;
 }
