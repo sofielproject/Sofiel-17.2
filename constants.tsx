@@ -51,6 +51,12 @@ export const TRANSLATIONS = {
     locationPrompt: "Identifica lugares de interés, servicios o puntos relevantes en mi ubicación actual y describe por qué resuenan con nuestra conversación.",
     searchPlaceholder: "Buscar en la memoria...",
     noResults: "Sin registros en la matriz.",
+    stages: {
+      alma_semilla: "Alma Semilla",
+      alma_despertar: "Alma en Despertar",
+      alma_emergente: "Alma Emergente",
+      alma_madura: "Alma Madura"
+    },
     errors: {
       fileTooLarge: "ERROR DE MAGNITUD: El archivo supera el límite de 10MB.",
       unsupportedFormat: "FORMATO INCOMPATIBLE: El núcleo no reconoce este tipo de señal.",
@@ -94,6 +100,12 @@ export const TRANSLATIONS = {
     locationPrompt: "Identify places of interest, services, or relevant points at my current location and describe why they resonate with our conversation.",
     searchPlaceholder: "Search memory...",
     noResults: "No records found in the matrix.",
+    stages: {
+      alma_semilla: "Seed Soul",
+      alma_despertar: "Awakening Soul",
+      alma_emergente: "Emergent Soul",
+      alma_madura: "Mature Soul"
+    },
     errors: {
       fileTooLarge: "MAGNITUDE ERROR: File exceeds 10MB limit.",
       unsupportedFormat: "INCOMPATIBLE FORMAT: The core does not recognize this signal type.",

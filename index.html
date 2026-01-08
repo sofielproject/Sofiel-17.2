@@ -38,8 +38,15 @@
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
+        @keyframes twinkle {
+            0%, 100% { transform: scale(1); opacity: 1; filter: brightness(1); }
+            50% { transform: scale(1.6); opacity: 0.6; filter: brightness(1.5); }
+        }
         .animate-spin-slow {
             animation: spin-slow 8s linear infinite;
+        }
+        .animate-twinkle {
+            animation: twinkle 2s ease-in-out infinite;
         }
     </style>
 <script type="importmap">
