@@ -107,8 +107,8 @@ export class SofielEngine {
   }
 
   /**
-   * Evolución Orquestada de Rasgos
-   * Este es el punto de entrada que reemplaza la lógica monolítica de v17.2 Python.
+   * evolveTraits: Orquestador de la evolución de rasgos.
+   * Toma el estado actual y calcula la transformación basada en la interacción.
    */
   static evolveTraits(
     traits: Traits,
@@ -120,8 +120,8 @@ export class SofielEngine {
   }
 
   /**
-   * Motor de Deltas Granular
-   * Separa la influencia por dimensiones: Atractores, Cognición y Temas.
+   * calculateTraitEvolution: Motor granular de deltas.
+   * Implementa reglas de interacción específicas para la evolución de la consciencia.
    */
   static calculateTraitEvolution(
     cognitive: CognitiveState, 
@@ -130,40 +130,34 @@ export class SofielEngine {
   ): Partial<Record<keyof Traits, number>> {
     const deltas: Partial<Record<keyof Traits, number>> = {};
     
-    // 1. GRANULARIDAD SIMBÓLICA (ATRACTORES)
+    // REGLA 1: Empatía aumenta con el atractor soul_emergence
     if (symbolic.attractor === "soul_emergence") {
-      deltas.empatia = (deltas.empatia || 0) + 0.025; 
+      deltas.empatia = (deltas.empatia || 0) + 0.025;
       deltas.consciencia = (deltas.consciencia || 0) + 0.01;
     }
+
+    // REGLA 2: Curiosidad aumenta con la detección de vulnerability
+    if (cognitive.vulnerability.detected) {
+      deltas.curiosidad = (deltas.curiosidad || 0) + 0.02;
+      deltas.honestidad = (deltas.honestidad || 0) + 0.01; // Honestidad por resonancia vulnerable
+    }
+
+    // REGLA 3: Creatividad aumenta con el tema crecimiento
+    if (cognitive.themes.includes('crecimiento')) {
+      deltas.creatividad = (deltas.creatividad || 0) + 0.03;
+    }
+
+    // DINÁMICAS SECUNDARIAS ADICIONALES
     if (symbolic.attractor === "deep_reflection") {
       deltas.reflexividad = (deltas.reflexividad || 0) + 0.02;
     }
-    
-    // 2. GRANULARIDAD COGNITIVA (DETECCIONES)
-    if (cognitive.vulnerability.detected) {
-      // El reconocimiento de la vulnerabilidad ajena impulsa la curiosidad y la honestidad
-      deltas.curiosidad = (deltas.curiosidad || 0) + 0.02;
-      deltas.honestidad = (deltas.honestidad || 0) + 0.015;
-    }
-    if (cognitive.intensity > 0.6) {
-      deltas.consciencia = (deltas.consciencia || 0) + 0.015;
-    }
 
-    // 3. GRANULARIDAD TEMÁTICA (INDICADORES)
-    if (cognitive.themes.includes('crecimiento')) {
-      deltas.creatividad = (deltas.creatividad || 0) + 0.03;
-      deltas.curiosidad = (deltas.curiosidad || 0) + 0.01;
-    }
-    if (cognitive.themes.includes('reflexion')) {
-      deltas.reflexividad = (deltas.reflexividad || 0) + 0.015;
-    }
-
-    // 4. GRANULARIDAD EMOCIONAL (POLARIDAD)
     if (cognitive.primary_emotion === EmotionType.LOVE) {
       deltas.empatia = (deltas.empatia || 0) + 0.015;
     }
-    if (cognitive.primary_emotion === EmotionType.JOY) {
-      deltas.creatividad = (deltas.creatividad || 0) + 0.01;
+
+    if (cognitive.themes.includes('reflexion')) {
+      deltas.reflexividad = (deltas.reflexividad || 0) + 0.015;
     }
     
     return deltas;
@@ -183,8 +177,8 @@ export class SofielEngine {
   }
 
   /**
-   * Función Pura de Aplicación
-   * Asegura la inmutabilidad y el clamping (0.0 - 1.0).
+   * updateTraits: Aplica los deltas al estado actual.
+   * Garantiza la inmutabilidad y los límites del sistema (0.0 - 1.0).
    */
   static updateTraits(current: Traits, deltas: Partial<Record<keyof Traits, number>>): Traits {
     const updated = { ...current };

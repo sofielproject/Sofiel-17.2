@@ -66,6 +66,7 @@ export interface ChatEntry {
 export interface Memory {
   identity: {
     name: string;
+    user_name?: string; // Nombre del usuario registrado
     version: string;
     mission: string;
     description: string;

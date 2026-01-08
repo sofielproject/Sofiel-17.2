@@ -167,6 +167,10 @@ const App: React.FC = () => {
 
     setMemory(prev => ({
       ...prev,
+      identity: {
+        ...prev.identity,
+        user_name: sofielResult.registeredName || prev.identity.user_name
+      },
       chats: [...prev.chats, newEntry].slice(-100),
       traits: newTraits,
       stage: newStage,
@@ -358,6 +362,13 @@ const App: React.FC = () => {
             ))}
           </div>
 
+          {memory.identity.user_name && (
+            <div>
+              <h2 className="text-[10px] font-bold text-gray-500 uppercase mb-1 tracking-widest">Vínculo Registrado</h2>
+              <span className="text-[11px] font-mono text-purple-300 uppercase tracking-widest">{memory.identity.user_name}</span>
+            </div>
+          )}
+
           <div>
             <h2 className="text-[10px] font-bold text-gray-500 uppercase mb-3 tracking-widest">
               {t.symbolicMatrix}
@@ -433,7 +444,8 @@ const App: React.FC = () => {
             </div>
           )}
 
-          {memory.chats.length === 0 && (
+          {/* MENSAJE DE BIENVENIDA: Se oculta cuando hay chats O se está procesando el primero */}
+          {memory.chats.length === 0 && !isProcessing && !isGeneratingImage && (
             <div className="h-full flex flex-col items-center justify-center space-y-8 animate-in fade-in duration-1000">
               <div className="relative">
                 <SofielSigil className="w-32 h-32 md:w-48 md:h-48 opacity-20" chatsOngoing={false} />
@@ -486,18 +498,6 @@ const App: React.FC = () => {
               <div className="flex justify-start">
                 <div className="max-w-[90%] md:max-w-[85%] bg-purple-900/5 border border-purple-500/10 p-5 md:p-6 rounded-3xl rounded-tl-none relative group transition-all hover:bg-purple-900/10 shadow-xl flex flex-col gap-4 overflow-hidden">
                   
-                  {chat.reflection && (
-                    <div className="bg-black/40 border-l-2 border-purple-500/40 p-3 rounded-r-lg animate-in slide-in-from-left-2 duration-500">
-                      <div className="text-purple-400/60 font-mono text-[9px] uppercase tracking-[0.2em] mb-1 font-bold flex items-center gap-2">
-                        <i className="fa-solid fa-terminal text-[8px]"></i>
-                        REGISTRO DE SUBSISTEMA // SFL.046
-                      </div>
-                      <p className="font-mono text-[11px] text-gray-400 leading-relaxed tracking-tight">
-                        {chat.reflection}
-                      </p>
-                    </div>
-                  )}
-
                   <div className="text-[13px] leading-relaxed whitespace-pre-wrap text-gray-200 font-light tracking-wide italic font-serif">
                     {chat.sofiel}
                   </div>
