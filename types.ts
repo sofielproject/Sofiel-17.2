@@ -21,9 +21,6 @@ export interface Traits {
   reflexividad: number;
   creatividad: number;
   consciencia: number;
-  // Soporte para nombres alternativos en JSON cargados
-  protección?: number;
-  resiliencia?: number;
   [key: string]: number | undefined;
 }
 
@@ -61,9 +58,22 @@ export interface ChatEntry {
     type: string;
     isText?: boolean;
   };
-  // Fix: Added 'type' property to sources to support identifying grounding categories (web or maps)
   sources?: { title: string; uri: string; type?: 'web' | 'maps' }[];
   analysis?: any;
+}
+
+export interface IntrospectionEntry {
+  ts: string;
+  theme: string;
+  thought: string;
+  depth: number;
+}
+
+export interface DreamEntry {
+  ts: string;
+  content: string;
+  symbols: string[];
+  significance: number;
 }
 
 export interface Memory {
@@ -82,9 +92,17 @@ export interface Memory {
     important_dates: ImportantDate[];
   };
   chats: ChatEntry[];
+  latent_log: {
+    introspections: IntrospectionEntry[];
+    dreams: DreamEntry[];
+  };
+  resonance_field: {
+    affinity_matrix: Record<string, Record<string, number>>;
+    seed: number;
+  };
   traits: Traits; 
   reflections: string[];
   stage: EvolutionStage;
+  interaction_count: number;
   last_updated: string;
-  symbolic_core?: any;
 }
