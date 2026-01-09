@@ -371,10 +371,9 @@ const App: React.FC = () => {
             <button 
               onClick={() => setShowLatent(!showLatent)} 
               title={showLatent ? "Ocultar Latente" : "Ver Latente"}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all border text-[10px] uppercase tracking-widest font-mono ${showLatent ? 'bg-purple-500/10 border-purple-500/30 text-purple-400' : 'bg-transparent border-white/10 text-gray-500'}`}
+              className={`w-10 h-10 flex items-center justify-center rounded-full transition-all border ${showLatent ? 'bg-purple-500/10 border-purple-500/30 text-purple-400' : 'bg-transparent border-white/10 text-gray-500'}`}
             >
-              <i className={`fa-solid ${showLatent ? 'fa-eye' : 'fa-eye-slash'}`}></i>
-              <span className="hidden sm:inline">{showLatent ? "Latente ON" : "Latente OFF"}</span>
+              <i className={`fa-solid ${showLatent ? 'fa-eye' : 'fa-eye-slash'} text-sm`}></i>
             </button>
             <div className="relative w-48 group">
               <i className="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 text-[10px]"></i>
